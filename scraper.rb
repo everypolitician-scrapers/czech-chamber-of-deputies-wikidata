@@ -1,7 +1,6 @@
 #!/bin/env ruby
 # encoding: utf-8
 
-require 'scraperwiki'
 require 'wikidata/fetcher'
 
 @pages = [
@@ -14,11 +13,5 @@ require 'wikidata/fetcher'
   'Kategorie:Poslanci_Parlamentu_České_republiky_(1992–1996)',
 ]
 
-@pages.map { |c| WikiData::Category.new(c, 'cs').wikidata_ids }.flatten.uniq.each do |id|
-  data = WikiData::Fetcher.new(id: id).data or next
-  ScraperWiki.save_sqlite([:id], data)
-end
-
-require 'rest-client'
-warn RestClient.post ENV['MORPH_REBUILDER_URL'], {} if ENV['MORPH_REBUILDER_URL']
-
+names = @pages.map { |c| WikiData::Category.new(c, 'cs').member_titles }.flatten.uniq
+EveryPolitician::Wikidata.scrape_wikidata(names: { cs: names })
